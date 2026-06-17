@@ -3,61 +3,138 @@ export type Game = {
   slug: string;
   homeTeam: string;
   awayTeam: string;
+  homeScore: number;
+  awayScore: number;
   date: string;
   time: string;
   stadium: string;
   description: string;
 };
 
-export const games: Game[] = [
-  {
-    id: 1,
-    slug: 'bills-vs-dolphins',
-    homeTeam: 'Buffalo Bills',
-    awayTeam: 'Miami Dolphins',
-    date: 'Sunday, Oct 6',
-    time: '1:00 PM ET',
-    stadium: 'Highmark Stadium',
-    description: 'A primetime AFC East showdown with electric playmakers on both rosters. Great atmosphere and plenty of star power.',
-  },
-  {
-    id: 2,
-    slug: 'chiefs-vs-packers',
-    homeTeam: 'Kansas City Chiefs',
-    awayTeam: 'Green Bay Packers',
-    date: 'Sunday, Nov 3',
-    time: '4:25 PM ET',
-    stadium: 'Arrowhead Stadium',
-    description: 'Patrick Mahomes brings the Chiefs to the frozen tundra for a classic matchup against the Packers.',
-  },
-  {
-    id: 3,
-    slug: 'ravens-vs-browns',
-    homeTeam: 'Baltimore Ravens',
-    awayTeam: 'Cleveland Browns',
-    date: 'Monday, Nov 18',
-    time: '8:15 PM ET',
-    stadium: 'M&T Bank Stadium',
-    description: 'A tough AFC North rivalry featuring strong defenses and edge-of-your-seat late-game drama.',
-  },
-  {
-    id: 4,
-    slug: 'cowboys-vs-eagles',
-    homeTeam: 'Dallas Cowboys',
-    awayTeam: 'Philadelphia Eagles',
-    date: 'Sunday, Dec 8',
-    time: '8:20 PM ET',
-    stadium: 'AT&T Stadium',
-    description: 'A huge NFC matchup with championship implications and vocal fanbases on display.',
-  },
-  {
-    id: 5,
-    slug: '49ers-vs-buccaneers',
-    homeTeam: 'San Francisco 49ers',
-    awayTeam: 'Tampa Bay Buccaneers',
-    date: 'Sunday, Dec 22',
-    time: '4:05 PM ET',
-    stadium: 'Levi\'s Stadium',
-    description: 'A strategic battle between two veteran-led teams with dynamic offenses and stout defenses.',
-  },
-];
+type ESPNTeam = {
+  displayName?: string;
+  shortDisplayName?: string;
+  name?: string;
+  abbreviation?: string;
+};
+
+type ESPNCompetitor = {
+  id?: string;
+  homeAway?: string;
+  team?: ESPNTeam;
+  score?: string | number;
+};
+
+type ESPNVenue = {
+  fullName?: string;
+};
+
+type ESPNStatus = {
+  type?: {
+    detail?: string;
+    shortDetail?: string;
+  };
+};
+
+type ESPNCompetition = {
+  competitors?: ESPNCompetitor[];
+  venue?: ESPNVenue;
+  status?: ESPNStatus;
+};
+
+type ESPNEvent = {
+  id?: string;
+  date?: string;
+  competitions?: ESPNCompetition[];
+};
+
+type ESPNScoreboardResponse = {
+  events?: ESPNEvent[];
+};
+
+const ESPN_SCOREBOARD_URL =
+  'https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard';
+
+function toSlug(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function formatDate(dateString: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(dateString));
+}
+
+function formatTime(dateString: string) {
+  return new Intl.DateTimeFormat('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(dateString));
+}
+
+export async function getGames(): Promise<Game[]> {
+  const weekRequests = Array.from({ length: 18 }, (_, index) => {
+    const weekNumber = index + 1;
+    const url = `${ESPN_SCOREBOARD_URL}?dates=2025&seasontype=2&week=${weekNumber}`;
+
+    return fetch(url, {
+      next: { revalidate: 3600 },
+    }).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ESPN scoreboard for week ${weekNumber}: ${response.status}`);
+      }
+
+      const data = (await response.json()) as ESPNScoreboardResponse;
+      return data.events ?? [];
+    });
+  });
+
+  const weekEvents = await Promise.all(weekRequests);
+  const events = weekEvents.flat();
+
+  return events.map((event) => {
+    const competition = event.competitions?.[0];
+    const homeCompetitor = competition?.competitors?.find(
+      (competitor) => competitor.homeAway === 'home'
+    );
+    const awayCompetitor = competition?.competitors?.find(
+      (competitor) => competitor.homeAway === 'away'
+    );
+
+    const homeTeam =
+      homeCompetitor?.team?.displayName ||
+      homeCompetitor?.team?.shortDisplayName ||
+      homeCompetitor?.team?.name ||
+      'TBD';
+    const awayTeam =
+      awayCompetitor?.team?.displayName ||
+      awayCompetitor?.team?.shortDisplayName ||
+      awayCompetitor?.team?.name ||
+      'TBD';
+    const homeScore = Number(homeCompetitor?.score ?? 0);
+    const awayScore = Number(awayCompetitor?.score ?? 0);
+    const stadium = competition?.venue?.fullName || 'TBD';
+    const eventDate = event.date || new Date().toISOString();
+    const statusDetail = competition?.status?.type?.detail;
+
+    return {
+      id: Number(event.id ?? 0),
+      slug: `${toSlug(awayTeam)}-vs-${toSlug(homeTeam)}`,
+      homeTeam,
+      awayTeam,
+      homeScore,
+      awayScore,
+      date: formatDate(eventDate),
+      time: formatTime(eventDate),
+      stadium,
+      description: statusDetail
+        ? `${awayTeam} at ${homeTeam} (${statusDetail}).`
+        : `${awayTeam} vs ${homeTeam} at ${stadium}.`,
+    };
+  });
+}

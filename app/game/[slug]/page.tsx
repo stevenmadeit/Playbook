@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { games } from '../../../data/games';
+import { getGames } from '../../../data/games';
 import RatingWidget from '../../components/RatingWidget';
 
 type Params = {
@@ -8,16 +8,15 @@ type Params = {
   };
 };
 
-function findGame(slug: string) {
-  return games.find((game) => game.slug === slug);
-}
-
 export async function generateStaticParams() {
+  const games = await getGames();
+
   return games.map((game) => ({ slug: game.slug }));
 }
 
-export default function GameDetailPage({ params }: Params) {
-  const game = findGame(params.slug);
+export default async function GameDetailPage({ params }: Params) {
+  const games = await getGames();
+  const game = games.find((entry) => entry.slug === params.slug);
 
   if (!game) {
     return (
@@ -54,9 +53,13 @@ export default function GameDetailPage({ params }: Params) {
               <p className="mt-1 text-sm text-slate-600">{game.time}</p>
             </div>
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Stadium</p>
-              <p className="mt-3 text-lg font-semibold text-slate-900">{game.stadium}</p>
-              <p className="mt-1 text-sm text-slate-600">A matchup worth bookmarking.</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">Score</p>
+              <p className="mt-3 flex items-center justify-center gap-2 text-2xl font-semibold leading-none tracking-tight text-slate-900 [font-variant-numeric:tabular-nums]">
+                <span>{game.awayScore}</span>
+                <span className="text-slate-400">-</span>
+                <span>{game.homeScore}</span>
+              </p>
+              <p className="mt-1 text-sm text-slate-600">{game.awayTeam} @ {game.homeTeam}</p>
             </div>
           </div>
 

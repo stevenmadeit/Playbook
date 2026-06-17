@@ -1,7 +1,9 @@
 import Link from 'next/link';
-import { games } from '../data/games';
+import { getGames } from '../data/games';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const games = await getGames();
+
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10">
       <div className="mx-auto max-w-5xl">
@@ -20,12 +22,22 @@ export default function HomePage() {
               href={`/game/${game.slug}`}
               className="group block overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 shadow-card transition hover:-translate-y-1 hover:shadow-xl"
             >
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm text-slate-500">{game.date} · {game.time}</p>
-                  <h2 className="mt-3 text-xl font-semibold text-slate-900 group-hover:text-sky-600">{game.awayTeam} @ {game.homeTeam}</h2>
+              <div className="space-y-4">
+                <p className="text-sm text-slate-500">{game.date} · {game.time}</p>
+                <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Away</p>
+                    <p className="mt-1 truncate text-base font-semibold text-slate-900">{game.awayTeam}</p>
+                  </div>
+                  <p className="text-2xl font-semibold leading-none tracking-tight text-slate-900 [font-variant-numeric:tabular-nums]">{game.awayScore}</p>
                 </div>
-                <span className="rounded-full bg-sky-100 px-3 py-1 text-sm font-medium text-sky-700">Game {game.id}</span>
+                <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Home</p>
+                    <p className="mt-1 truncate text-base font-semibold text-slate-900">{game.homeTeam}</p>
+                  </div>
+                  <p className="text-2xl font-semibold leading-none tracking-tight text-slate-900 [font-variant-numeric:tabular-nums]">{game.homeScore}</p>
+                </div>
               </div>
               <p className="mt-5 text-sm leading-6 text-slate-600">{game.description}</p>
             </Link>
