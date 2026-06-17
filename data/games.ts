@@ -3,6 +3,8 @@ export type Game = {
   slug: string;
   homeTeam: string;
   awayTeam: string;
+  homeTeamLogo: string;
+  awayTeamLogo: string;
   homeScore: number;
   awayScore: number;
   date: string;
@@ -16,6 +18,7 @@ type ESPNTeam = {
   shortDisplayName?: string;
   name?: string;
   abbreviation?: string;
+  logo?: string;
 };
 
 type ESPNCompetitor = {
@@ -116,6 +119,8 @@ export async function getGames(): Promise<Game[]> {
       awayCompetitor?.team?.shortDisplayName ||
       awayCompetitor?.team?.name ||
       'TBD';
+    const homeTeamLogo = homeCompetitor?.team?.logo || '';
+    const awayTeamLogo = awayCompetitor?.team?.logo || '';
     const homeScore = Number(homeCompetitor?.score ?? 0);
     const awayScore = Number(awayCompetitor?.score ?? 0);
     const stadium = competition?.venue?.fullName || 'TBD';
@@ -127,6 +132,8 @@ export async function getGames(): Promise<Game[]> {
       slug: `${toSlug(awayTeam)}-vs-${toSlug(homeTeam)}`,
       homeTeam,
       awayTeam,
+      homeTeamLogo,
+      awayTeamLogo,
       homeScore,
       awayScore,
       date: formatDate(eventDate),

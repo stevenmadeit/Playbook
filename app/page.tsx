@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { getGames } from '../data/games';
 
@@ -25,16 +26,42 @@ export default async function HomePage() {
               <div className="space-y-4">
                 <p className="text-sm text-slate-500">{game.date} · {game.time}</p>
                 <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Away</p>
-                    <p className="mt-1 truncate text-base font-semibold text-slate-900">{game.awayTeam}</p>
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white">
+                      {game.awayTeamLogo ? (
+                        <Image
+                          src={game.awayTeamLogo}
+                          alt={`${game.awayTeam} logo`}
+                          fill
+                          sizes="40px"
+                          className="object-contain p-1"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Away</p>
+                      <p className="mt-1 truncate text-base font-semibold text-slate-900">{game.awayTeam}</p>
+                    </div>
                   </div>
                   <p className="text-2xl font-semibold leading-none tracking-tight text-slate-900 [font-variant-numeric:tabular-nums]">{game.awayScore}</p>
                 </div>
                 <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 p-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Home</p>
-                    <p className="mt-1 truncate text-base font-semibold text-slate-900">{game.homeTeam}</p>
+                  <div className="flex min-w-0 flex-1 items-center gap-3">
+                    <div className="relative h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-white">
+                      {game.homeTeamLogo ? (
+                        <Image
+                          src={game.homeTeamLogo}
+                          alt={`${game.homeTeam} logo`}
+                          fill
+                          sizes="40px"
+                          className="object-contain p-1"
+                        />
+                      ) : null}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Home</p>
+                      <p className="mt-1 truncate text-base font-semibold text-slate-900">{game.homeTeam}</p>
+                    </div>
                   </div>
                   <p className="text-2xl font-semibold leading-none tracking-tight text-slate-900 [font-variant-numeric:tabular-nums]">{game.homeScore}</p>
                 </div>

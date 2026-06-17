@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 import { getGames } from '../../../data/games';
 import RatingWidget from '../../components/RatingWidget';
@@ -39,7 +40,31 @@ export default async function GameDetailPage({ params }: Params) {
           <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Game details</p>
-              <h1 className="mt-4 text-3xl font-semibold text-slate-900">{game.awayTeam} @ {game.homeTeam}</h1>
+              <div className="mt-4 flex items-center gap-4">
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl bg-slate-50">
+                  {game.awayTeamLogo ? (
+                    <Image
+                      src={game.awayTeamLogo}
+                      alt={`${game.awayTeam} logo`}
+                      fill
+                      sizes="80px"
+                      className="object-contain p-3"
+                    />
+                  ) : null}
+                </div>
+                <h1 className="text-3xl font-semibold text-slate-900">{game.awayTeam} @ {game.homeTeam}</h1>
+                <div className="relative h-20 w-20 overflow-hidden rounded-2xl bg-slate-50">
+                  {game.homeTeamLogo ? (
+                    <Image
+                      src={game.homeTeamLogo}
+                      alt={`${game.homeTeam} logo`}
+                      fill
+                      sizes="80px"
+                      className="object-contain p-3"
+                    />
+                  ) : null}
+                </div>
+              </div>
             </div>
             <Link href="/" className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-white">
               ← Back to games
