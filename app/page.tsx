@@ -2,8 +2,19 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getGames } from '../data/games';
 
-export default async function HomePage() {
+type HomePageProps = {
+  searchParams?: {
+    week?: string;
+  };
+};
+
+export default async function HomePage({ searchParams }: HomePageProps) {
   const games = await getGames();
+  const selectedWeek = searchParams?.week;
+  const weekFilter = selectedWeek ? Number(selectedWeek) : null;
+  const filteredGames = weekFilter
+    ? games.filter((game) => game.week === weekFilter)
+    : games;
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10">
@@ -16,8 +27,40 @@ export default async function HomePage() {
           </p>
         </header>
 
+        <section className="mb-8 rounded-3xl bg-white p-4 shadow-card">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm font-medium text-slate-700">
+              {weekFilter
+                ? `Showing Week ${weekFilter} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
+                : `Showing all weeks · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Link
+                href="/"
+                className={`rounded-full px-4 py-2 text-sm font-medium transition ${!weekFilter ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+              >
+                All weeks
+              </Link>
+              {Array.from({ length: 18 }, (_, index) => {
+                const weekNumber = index + 1;
+                const isActive = weekFilter === weekNumber;
+
+                return (
+                  <Link
+                    key={weekNumber}
+                    href={`/?week=${weekNumber}`}
+                    className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
+                  >
+                    Week {weekNumber}
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
         <section className="grid gap-6 sm:grid-cols-2">
-          {games.map((game) => (
+          {filteredGames.map((game) => (
             <Link
               key={game.id}
               href={`/game/${game.slug}`}
