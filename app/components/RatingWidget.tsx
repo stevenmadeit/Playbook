@@ -2,19 +2,42 @@
 
 import React from 'react';
 
+type SavedRating = {
+  rating: number;
+  updatedAt: number;
+};
+
 export default function RatingWidget({ slug }: { slug: string }) {
   const [rating, setRating] = React.useState<number>(0);
 
   React.useEffect(() => {
     const saved = window.localStorage.getItem(`nfl-game-${slug}-rating`);
-    if (saved) {
-      setRating(Number(saved));
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved) as SavedRating;
+      if (typeof parsed.rating === 'number') {
+        setRating(parsed.rating);
+      }
+    } catch {
+      const fallback = Number(saved);
+      if (!Number.isNaN(fallback)) {
+        setRating(fallback);
+      }
     }
   }, [slug]);
 
   const saveRating = (value: number) => {
+    const payload: SavedRating = {
+      rating: value,
+      updatedAt: Date.now(),
+    };
+
     setRating(value);
-    window.localStorage.setItem(`nfl-game-${slug}-rating`, String(value));
+    window.localStorage.setItem(
+      `nfl-game-${slug}-rating`,
+      JSON.stringify(payload)
+    );
   };
 
   return (

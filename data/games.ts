@@ -1,6 +1,7 @@
 export type Game = {
   id: number;
   slug: string;
+  week: number;
   homeTeam: string;
   awayTeam: string;
   homeTeamLogo: string;
@@ -93,14 +94,16 @@ export async function getGames(): Promise<Game[]> {
       }
 
       const data = (await response.json()) as ESPNScoreboardResponse;
-      return data.events ?? [];
+      return { weekNumber, events: data.events ?? [] };
     });
   });
 
-  const weekEvents = await Promise.all(weekRequests);
-  const events = weekEvents.flat();
+  const weekResults = await Promise.all(weekRequests);
+  const events = weekResults.flatMap(({ weekNumber, events }) =>
+    (events || []).map((event) => ({ weekNumber, event }))
+  );
 
-  return events.map((event) => {
+  return events.map(({ weekNumber, event }) => {
     const competition = event.competitions?.[0];
     const homeCompetitor = competition?.competitors?.find(
       (competitor) => competitor.homeAway === 'home'
@@ -130,6 +133,7 @@ export async function getGames(): Promise<Game[]> {
     return {
       id: Number(event.id ?? 0),
       slug: `${toSlug(awayTeam)}-vs-${toSlug(homeTeam)}`,
+      week: weekNumber,
       homeTeam,
       awayTeam,
       homeTeamLogo,
