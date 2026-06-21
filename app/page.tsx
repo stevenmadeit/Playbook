@@ -39,9 +39,9 @@ export default async function HomePage({ searchParams }: HomePageProps) {
         </header>
 
         <section className="mb-8 rounded-3xl bg-white p-4 shadow-card">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <p className="text-sm font-medium text-slate-700">
+          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between xl:flex-1">
+              <p className="whitespace-nowrap text-sm font-medium text-slate-700">
                 {selectedTeam && weekFilter
                   ? `Showing ${selectedTeam} · Week ${weekFilter} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
                   : selectedTeam
@@ -50,7 +50,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                       ? `Showing Week ${weekFilter} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
                       : `Showing all weeks · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`}
               </p>
-              <form method="get" className="flex items-center gap-2">
+              <form method="get" className="flex flex-wrap items-center gap-2">
                 <label htmlFor="team" className="sr-only">
                   Filter by team
                 </label>
