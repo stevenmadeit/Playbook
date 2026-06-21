@@ -5,38 +5,80 @@ import { getGames } from '../data/games';
 type HomePageProps = {
   searchParams?: {
     week?: string;
+    team?: string;
   };
 };
 
 export default async function HomePage({ searchParams }: HomePageProps) {
   const games = await getGames();
   const selectedWeek = searchParams?.week;
+  const selectedTeam = searchParams?.team ?? '';
   const weekFilter = selectedWeek ? Number(selectedWeek) : null;
-  const filteredGames = weekFilter
-    ? games.filter((game) => game.week === weekFilter)
-    : games;
+  const uniqueTeams = Array.from(
+    new Set(games.flatMap((game) => [game.awayTeam, game.homeTeam]))
+  ).sort((a, b) => a.localeCompare(b));
+  const filteredGames = games.filter((game) => {
+    const matchesWeek = !weekFilter || game.week === weekFilter;
+    const matchesTeam =
+      !selectedTeam ||
+      game.awayTeam === selectedTeam ||
+      game.homeTeam === selectedTeam;
+
+    return matchesWeek && matchesTeam;
+  });
 
   return (
     <main className="min-h-screen bg-slate-50 px-6 py-10 sm:px-10">
       <div className="mx-auto max-w-5xl">
         <header className="mb-10 rounded-3xl bg-white p-8 shadow-card">
-          <p className="text-sm uppercase tracking-[0.3em] text-sky-600">NFL Game Ratings</p>
-          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900">Rate the most exciting NFL matchups.</h1>
+          <p className="text-sm uppercase tracking-[0.3em] text-sky-600">Playbook</p>
+          <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900">Track the season and rate the games that matter.</h1>
           <p className="mt-4 max-w-2xl text-base leading-7 text-slate-600">
-            Browse today&apos;s curated slate of classic games, open a detail page, and choose a 1-5 star rating. Ratings are saved locally in your browser.
+            Browse the full NFL slate, open a game page, and save your 1-5 star ratings locally in your browser.
           </p>
         </header>
 
         <section className="mb-8 rounded-3xl bg-white p-4 shadow-card">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <p className="text-sm font-medium text-slate-700">
-              {weekFilter
-                ? `Showing Week ${weekFilter} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
-                : `Showing all weeks · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`}
-            </p>
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <p className="text-sm font-medium text-slate-700">
+                {selectedTeam && weekFilter
+                  ? `Showing ${selectedTeam} · Week ${weekFilter} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
+                  : selectedTeam
+                    ? `Showing ${selectedTeam} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
+                    : weekFilter
+                      ? `Showing Week ${weekFilter} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
+                      : `Showing all weeks · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`}
+              </p>
+              <form method="get" className="flex items-center gap-2">
+                <label htmlFor="team" className="sr-only">
+                  Filter by team
+                </label>
+                <select
+                  id="team"
+                  name="team"
+                  defaultValue={selectedTeam}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-sky-500 focus:bg-white"
+                >
+                  <option value="">All teams</option>
+                  {uniqueTeams.map((team) => (
+                    <option key={team} value={team}>
+                      {team}
+                    </option>
+                  ))}
+                </select>
+                {weekFilter ? <input type="hidden" name="week" value={weekFilter} /> : null}
+                <button
+                  type="submit"
+                  className="rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700"
+                >
+                  Apply
+                </button>
+              </form>
+            </div>
             <div className="flex flex-wrap gap-2">
               <Link
-                href="/"
+                href={selectedTeam ? `/?team=${encodeURIComponent(selectedTeam)}` : '/'}
                 className={`rounded-full px-4 py-2 text-sm font-medium transition ${!weekFilter ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
               >
                 All weeks
@@ -44,11 +86,14 @@ export default async function HomePage({ searchParams }: HomePageProps) {
               {Array.from({ length: 18 }, (_, index) => {
                 const weekNumber = index + 1;
                 const isActive = weekFilter === weekNumber;
+                const href = selectedTeam
+                  ? `/?week=${weekNumber}&team=${encodeURIComponent(selectedTeam)}`
+                  : `/?week=${weekNumber}`;
 
                 return (
                   <Link
                     key={weekNumber}
-                    href={`/?week=${weekNumber}`}
+                    href={href}
                     className={`rounded-full px-4 py-2 text-sm font-medium transition ${isActive ? 'bg-sky-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
                   >
                     Week {weekNumber}
