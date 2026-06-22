@@ -6,6 +6,8 @@ export type Game = {
   awayTeam: string;
   homeTeamLogo: string;
   awayTeamLogo: string;
+  homeTeamColor?: string;
+  awayTeamColor?: string;
   homeScore: number;
   awayScore: number;
   date: string;
@@ -20,6 +22,8 @@ type ESPNTeam = {
   name?: string;
   abbreviation?: string;
   logo?: string;
+  color?: string;
+  alternateColor?: string;
 };
 
 type ESPNCompetitor = {
@@ -124,6 +128,8 @@ export async function getGames(): Promise<Game[]> {
       'TBD';
     const homeTeamLogo = homeCompetitor?.team?.logo || '';
     const awayTeamLogo = awayCompetitor?.team?.logo || '';
+    const homeTeamColor = homeCompetitor?.team?.color || homeCompetitor?.team?.alternateColor;
+    const awayTeamColor = awayCompetitor?.team?.color || awayCompetitor?.team?.alternateColor;
     const homeScore = Number(homeCompetitor?.score ?? 0);
     const awayScore = Number(awayCompetitor?.score ?? 0);
     const stadium = competition?.venue?.fullName || 'TBD';
@@ -138,6 +144,8 @@ export async function getGames(): Promise<Game[]> {
       awayTeam,
       homeTeamLogo,
       awayTeamLogo,
+      homeTeamColor,
+      awayTeamColor,
       homeScore,
       awayScore,
       date: formatDate(eventDate),
