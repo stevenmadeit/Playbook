@@ -2,6 +2,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getGames } from '../data/games';
 import { getTeamAccent } from './utils/teamColors';
+import TeamFilter from './components/TeamFilter';
 
 type HomePageProps = {
   searchParams?: {
@@ -63,31 +64,7 @@ export default async function HomePage({ searchParams }: HomePageProps) {
                       ? `Showing ${selectedWeekLabel} · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`
                       : `Showing all weeks · ${filteredGames.length} game${filteredGames.length === 1 ? '' : 's'}`}
               </p>
-              <form method="get" className="flex flex-wrap items-center gap-2">
-                <label htmlFor="team" className="sr-only">
-                  Filter by team
-                </label>
-                <select
-                  id="team"
-                  name="team"
-                  defaultValue={selectedTeam}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-sky-500 focus:bg-white dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 dark:focus:bg-slate-900"
-                >
-                  <option value="">All teams</option>
-                  {uniqueTeams.map((team) => (
-                    <option key={team} value={team}>
-                      {team}
-                    </option>
-                  ))}
-                </select>
-                {weekFilter ? <input type="hidden" name="week" value={weekFilter} /> : null}
-                <button
-                  type="submit"
-                  className="rounded-full bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700"
-                >
-                  Apply
-                </button>
-              </form>
+              <TeamFilter teams={uniqueTeams} selectedTeam={selectedTeam} selectedWeek={weekFilter} />
             </div>
             <div className="flex flex-wrap gap-2">
               <Link
