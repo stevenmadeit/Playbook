@@ -26,6 +26,8 @@ type ESPNTeam = {
   logo?: string;
   color?: string;
   alternateColor?: string;
+  isActive?: boolean;
+  location?: string;
 };
 
 type ESPNCompetitor = {
@@ -33,7 +35,50 @@ type ESPNCompetitor = {
   homeAway?: string;
   team?: ESPNTeam;
   score?: string | number;
+  winner?: boolean;
 };
+
+function isActualTeam(team?: ESPNTeam) {
+  if (!team) return false;
+  if (typeof team.isActive === 'boolean') {
+    return team.isActive;
+  }
+
+  return !(team.location === 'AFC' || team.location === 'NFC');
+}
+
+function extractTeamName(team?: ESPNTeam) {
+  if (!team) {
+    return 'TBD';
+  }
+
+  if (isActualTeam(team)) {
+    return (
+      team.displayName || team.shortDisplayName || team.name || team.abbreviation || 'TBD'
+    );
+  }
+
+  return team.displayName || team.shortDisplayName || team.name || team.abbreviation || 'TBD';
+}
+
+function extractTeamLogo(team?: ESPNTeam) {
+  return team?.logo || '';
+}
+
+function getPlayoffSlugSuffix(roundName?: string) {
+  if (!roundName) {
+    return 'playoff';
+  }
+
+  const mapping: Record<string, string> = {
+    'Wild Card': 'wildcard',
+    Divisional: 'divisional',
+    Conference: 'conference',
+    'Super Bowl': 'superbowl',
+  };
+
+  return mapping[roundName] || toSlug(roundName);
+}
 
 type ESPNVenue = {
   fullName?: string;
@@ -148,8 +193,10 @@ export async function getGames(): Promise<Game[]> {
       awayCompetitor?.team?.shortDisplayName ||
       awayCompetitor?.team?.name ||
       'TBD';
-    const homeTeamLogo = homeCompetitor?.team?.logo || '';
-    const awayTeamLogo = awayCompetitor?.team?.logo || '';
+    const homeTeam = extractTeamName(homeCompetitor?.team);
+    const awayTeam = extractTeamName(awayCompetitor?.team);
+    const homeTeamLogo = extractTeamLogo(homeCompetitor?.team);
+    const awayTeamLogo = extractTeamLogo(awayCompetitor?.team);
     const homeTeamColor = homeCompetitor?.team?.color || homeCompetitor?.team?.alternateColor;
     const awayTeamColor = awayCompetitor?.team?.color || awayCompetitor?.team?.alternateColor;
     const homeScore = Number(homeCompetitor?.score ?? 0);
@@ -158,9 +205,15 @@ export async function getGames(): Promise<Game[]> {
     const eventDate = event.date || new Date().toISOString();
     const statusDetail = competition?.status?.type?.detail;
 
+    const baseSlug = `${toSlug(awayTeam)}-vs-${toSlug(homeTeam)}`;
+    const slug =
+      type === 'regular'
+        ? `${baseSlug}-week-${weekNumber}`
+        : `${baseSlug}-${getPlayoffSlugSuffix(roundName)}`;
+
     return {
       id: Number(event.id ?? 0),
-      slug: `${toSlug(awayTeam)}-vs-${toSlug(homeTeam)}`,
+      slug,
       week: weekNumber,
       type,
       roundName,
