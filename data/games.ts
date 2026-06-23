@@ -183,16 +183,6 @@ export async function getGames(): Promise<Game[]> {
       (competitor) => competitor.homeAway === 'away'
     );
 
-    const homeTeam =
-      homeCompetitor?.team?.displayName ||
-      homeCompetitor?.team?.shortDisplayName ||
-      homeCompetitor?.team?.name ||
-      'TBD';
-    const awayTeam =
-      awayCompetitor?.team?.displayName ||
-      awayCompetitor?.team?.shortDisplayName ||
-      awayCompetitor?.team?.name ||
-      'TBD';
     const homeTeam = extractTeamName(homeCompetitor?.team);
     const awayTeam = extractTeamName(awayCompetitor?.team);
     const homeTeamLogo = extractTeamLogo(homeCompetitor?.team);
