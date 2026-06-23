@@ -3,20 +3,26 @@
 A Letterboxd-style app for rating NFL games, built with Next.js 14 and Tailwind CSS.
 
 ## Available pages
-- `/` — game list (full 2025 NFL season, pulled live from ESPN)
-- `/game/[slug]` — game detail and rating page
+- `/` — game list with full 2025 NFL season data, including regular season and playoffs
+- `/game/[slug]` — game detail, star rating, and written review page
+- `/ratings` — diary of all games you have rated and reviewed
 
 ## Run locally
 1. Install dependencies:
 ```bash
-   npm install
+npm install
 ```
 2. Start the development server:
 ```bash
-   npm run dev
+npm run dev
 ```
 3. Open `http://localhost:3000`
 
 ## Notes
-- Ratings are saved in `localStorage`.
-- Game data is fetched live from the [ESPN API](https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard), covering the full 2025 season including final scores.
+- Team logos are displayed from the ESPN API on game cards and detail pages.
+- Filter games by week (1-18) and playoff rounds: Wild Card, Divisional, Conference Championships, Super Bowl.
+- Filter games by NFL team.
+- Dark mode is available and persisted in `localStorage`.
+- Written reviews are saved alongside star ratings.
+- `/ratings` shows all rated and reviewed games.
+- Live data is fetched from the ESPN API for the full 2025 season, including playoffs.

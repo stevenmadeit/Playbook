@@ -9,11 +9,13 @@ import type { Game } from '../../data/games';
 
 type SavedRating = {
   rating: number;
+  review?: string;
   updatedAt: number;
 };
 
 type RatedGame = Game & {
   rating: number;
+  review?: string;
   updatedAt: number;
 };
 
@@ -52,6 +54,7 @@ export default function RatingsPage() {
           return {
             ...game,
             rating: parsed.rating,
+            review: parsed.review,
             updatedAt: parsed.updatedAt,
           };
         })
@@ -148,6 +151,13 @@ export default function RatingsPage() {
                     </div>
                   </div>
                 </div>
+
+                {game.review ? (
+                  <div className="mt-5 rounded-3xl bg-slate-50 p-4 text-sm leading-7 text-slate-700 dark:bg-slate-800/70 dark:text-slate-300">
+                    <p className="font-semibold text-slate-900 dark:text-white">Review</p>
+                    <p className="mt-2 whitespace-pre-line">{game.review}</p>
+                  </div>
+                ) : null}
 
                 <div className="mt-5 flex items-center justify-between gap-3">
                   <p className="text-sm text-slate-600 dark:text-slate-300">Stadium: {game.stadium}</p>

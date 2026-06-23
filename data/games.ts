@@ -2,6 +2,8 @@ export type Game = {
   id: number;
   slug: string;
   week: number;
+  type: 'regular' | 'playoff';
+  roundName?: string;
   homeTeam: string;
   awayTeam: string;
   homeTeamLogo: string;
@@ -86,7 +88,9 @@ function formatTime(dateString: string) {
 }
 
 export async function getGames(): Promise<Game[]> {
-  const weekRequests = Array.from({ length: 18 }, (_, index) => {
+  const playoffRoundNames = ['Wild Card', 'Divisional', 'Conference', 'Super Bowl'] as const;
+
+  const regularWeekRequests = Array.from({ length: 18 }, (_, index) => {
     const weekNumber = index + 1;
     const url = `${ESPN_SCOREBOARD_URL}?dates=2025&seasontype=2&week=${weekNumber}`;
 
@@ -98,16 +102,34 @@ export async function getGames(): Promise<Game[]> {
       }
 
       const data = (await response.json()) as ESPNScoreboardResponse;
-      return { weekNumber, events: data.events ?? [] };
+      return { weekNumber, type: 'regular' as const, events: data.events ?? [] };
     });
   });
 
-  const weekResults = await Promise.all(weekRequests);
-  const events = weekResults.flatMap(({ weekNumber, events }) =>
-    (events || []).map((event) => ({ weekNumber, event }))
+  const playoffWeekRequests = Array.from({ length: 4 }, (_, index) => {
+    const apiWeek = index + 1;
+    const weekNumber = 18 + apiWeek;
+    const roundName = playoffRoundNames[index];
+    const url = `${ESPN_SCOREBOARD_URL}?dates=2025&seasontype=3&week=${apiWeek}`;
+
+    return fetch(url, {
+      next: { revalidate: 3600 },
+    }).then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to fetch ESPN playoff scoreboard for week ${apiWeek}: ${response.status}`);
+      }
+
+      const data = (await response.json()) as ESPNScoreboardResponse;
+      return { weekNumber, type: 'playoff' as const, roundName, events: data.events ?? [] };
+    });
+  });
+
+  const weekResults = await Promise.all([...regularWeekRequests, ...playoffWeekRequests]);
+  const events = weekResults.flatMap(({ weekNumber, type, roundName, events }) =>
+    (events || []).map((event) => ({ weekNumber, type, roundName, event }))
   );
 
-  return events.map(({ weekNumber, event }) => {
+  return events.map(({ weekNumber, type, roundName, event }) => {
     const competition = event.competitions?.[0];
     const homeCompetitor = competition?.competitors?.find(
       (competitor) => competitor.homeAway === 'home'
@@ -140,6 +162,8 @@ export async function getGames(): Promise<Game[]> {
       id: Number(event.id ?? 0),
       slug: `${toSlug(awayTeam)}-vs-${toSlug(homeTeam)}`,
       week: weekNumber,
+      type,
+      roundName,
       homeTeam,
       awayTeam,
       homeTeamLogo,
