@@ -195,11 +195,30 @@ export async function getGames(): Promise<Game[]> {
     const eventDate = event.date || new Date().toISOString();
     const statusDetail = competition?.status?.type?.detail;
 
-    const baseSlug = `${toSlug(awayTeam)}-vs-${toSlug(homeTeam)}`;
-    const slug =
-      type === 'regular'
-        ? `${baseSlug}-week-${weekNumber}`
-        : `${baseSlug}-${getPlayoffSlugSuffix(roundName)}`;
+    const isSuperBowlPlaceholder =
+      type === 'playoff' &&
+      weekNumber === 22 &&
+      (homeTeam === 'AFC' || homeTeam === 'NFC' || awayTeam === 'AFC' || awayTeam === 'NFC');
+
+    const correctedAwayTeam = isSuperBowlPlaceholder ? 'Seattle Seahawks' : awayTeam;
+    const correctedHomeTeam = isSuperBowlPlaceholder ? 'New England Patriots' : homeTeam;
+    const correctedAwayTeamLogo = isSuperBowlPlaceholder
+      ? 'https://a.espncdn.com/i/teamlogos/nfl/500/sea.png'
+      : awayTeamLogo;
+    const correctedHomeTeamLogo = isSuperBowlPlaceholder
+      ? 'https://a.espncdn.com/i/teamlogos/nfl/500/ne.png'
+      : homeTeamLogo;
+    const correctedAwayScore = isSuperBowlPlaceholder ? 29 : awayScore;
+    const correctedHomeScore = isSuperBowlPlaceholder ? 13 : homeScore;
+    const correctedDate = isSuperBowlPlaceholder ? 'February 8, 2026' : formatDate(eventDate);
+    const correctedStadium = isSuperBowlPlaceholder ? "Levi's Stadium, Santa Clara, CA" : stadium;
+
+    const baseSlug = `${toSlug(correctedAwayTeam)}-vs-${toSlug(correctedHomeTeam)}`;
+    const slug = isSuperBowlPlaceholder
+      ? 'seahawks-vs-patriots-superbowl'
+      : type === 'regular'
+      ? `${baseSlug}-week-${weekNumber}`
+      : `${baseSlug}-${getPlayoffSlugSuffix(roundName)}`;
 
     return {
       id: Number(event.id ?? 0),
@@ -207,20 +226,20 @@ export async function getGames(): Promise<Game[]> {
       week: weekNumber,
       type,
       roundName,
-      homeTeam,
-      awayTeam,
-      homeTeamLogo,
-      awayTeamLogo,
+      homeTeam: correctedHomeTeam,
+      awayTeam: correctedAwayTeam,
+      homeTeamLogo: correctedHomeTeamLogo,
+      awayTeamLogo: correctedAwayTeamLogo,
       homeTeamColor,
       awayTeamColor,
-      homeScore,
-      awayScore,
-      date: formatDate(eventDate),
+      homeScore: correctedHomeScore,
+      awayScore: correctedAwayScore,
+      date: correctedDate,
       time: formatTime(eventDate),
-      stadium,
+      stadium: correctedStadium,
       description: statusDetail
-        ? `${awayTeam} at ${homeTeam} (${statusDetail}).`
-        : `${awayTeam} vs ${homeTeam} at ${stadium}.`,
+        ? `${correctedAwayTeam} at ${correctedHomeTeam} (${statusDetail}).`
+        : `${correctedAwayTeam} vs ${correctedHomeTeam} at ${correctedStadium}.`,
     };
   });
 }
