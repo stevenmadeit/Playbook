@@ -2,6 +2,9 @@
 
 A Letterboxd-style app for rating NFL games, built with Next.js 14 and Tailwind CSS.
 
+![Playbook screenshot](https://media.discordapp.net/attachments/729771294903632074/1522099278426931370/playbook.png?ex=6a473ceb&is=6a45eb6b&hm=a1f64f58178ac5566c29a60d03660e0cb640c2ea64e965d064a544217ea967db&=&format=webp&quality=lossless&width=545&height=350)
+
+
 ## Available pages
 - `/` — game list with full 2025 NFL season data, including regular season and playoffs
 - `/game/[slug]` — game detail, star rating, and written review page
